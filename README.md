@@ -1,0 +1,2 @@
+# Wumplus
+Discord Chatbot
