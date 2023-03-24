@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "wumplus"
+version = "0.1.0"
+description = "Discord Chatbot by GPT"
+authors = ["keiya-sato"]
+license = "Apache License 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openai = "^0.27.2"
+discord-py = "^2.2.2"
+pydantic = {extras = ["dotenv"], version = "^1.10.7"}
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
+isort = "^5.12.0"
+black = "^23.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 125
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 125
