@@ -12,6 +12,7 @@ from app.config import settings
 if TYPE_CHECKING:
     from bot import Wumpus
 
+MESSAGES_LIMIT = 100
 
 openai.api_key = settings.OPENAI_API_KEY
 
@@ -22,20 +23,13 @@ class ChatBot(commands.Cog):
         self.chatbot_channel_id: list[discord.TextChannel] = []
 
     async def load_all_channel_messages(self, channel: discord.abc.GuildChannel) -> list[dict[str, str]]:
-        last_message_id = None
         messages = []
-        while True:
-            message_list = await channel.history(limit=1000, before=last_message_id)
-            if message_list:
-                for msg in message_list:
-                    content = {
-                        "content": msg.content,
-                        "role": "assistant" if msg.author.id == self.bot.user.id else "user",
-                    }
-                    messages.append(content)
-            else:
-                break
-            last_message_id = message_list[-1].id
+        async for message in channel.history(limit=MESSAGES_LIMIT):
+            content = {
+                "content": message.content,
+                "role": "assistant" if message.author.id == self.bot.user.id else "user",
+            }
+            messages.append(content)
         return messages
 
     async def get_assistant_response(self, messages: list[dict[str, str]]) -> str:
@@ -56,8 +50,9 @@ class ChatBot(commands.Cog):
 
     @app_commands.command(name="send", description="Send Message")
     @app_commands.describe(message="message")
-    async def send_message(self, interaction: Interaction, message: str):
+    async def send_message(self, interaction: Interaction, message: str) -> None:
         all_messages = await self.load_all_channel_messages(interaction.channel)
+        print("All message:", all_messages)
         all_messages.append({"content": message, "role": "user"})
         assistant_response = self.get_assistant_response(all_messages)
         await interaction.chennel.send(content=assistant_response)
