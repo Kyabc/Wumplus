@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import discord
 import openai
@@ -20,7 +20,7 @@ openai.api_key = settings.OPENAI_API_KEY
 class ChatBot(commands.Cog):
     def __init__(self, bot: Wumpus) -> None:
         self.bot: Wumpus = bot
-        self.chatbot_channel_id: list[discord.TextChannel] = []
+        self.channels: dict[int, dict[str, Union[str, bool]]] = dict()
 
     async def load_all_channel_messages(self, channel: discord.abc.GuildChannel) -> list[dict[str, str]]:
         messages = []
@@ -42,11 +42,39 @@ class ChatBot(commands.Cog):
     async def create_channel(self, interaction: Interaction, name: str) -> None:
         category = interaction.channel.category
         new_channel = await interaction.guild.create_text_channel(name=name, category=category)
-        self.chatbot_channel_id.append(new_channel)
+        self.channels[new_channel.id] = {"type": "create", "participating": True, "webhook": interaction.followup}
 
-    # @app_commands.command(name="delete-channel", description="Delete channel")
-    # async def delete_channel():
-    #     TODO: Implement a command to delete channels created by this bot
+    @app_commands.command(name="invite", description="Invite Wumpulus to this channel")
+    async def invite(self, interaction: Interaction) -> None:
+        channel_id = interaction.channel.id
+        if channel_id in self.channels:
+            # TODO: send embed msg ("Wumplus is already on this channel")
+            pass
+        else:
+            self.channels[channel_id] = {"type": "invite", "participating": True, "webhook": interaction.followup}
+            # TODO: send embed msg ("Wumplus joined this channel")
+
+    @app_commands.command(name="delete-channel", description="Delete channel")
+    async def delete_channel(self, interaction: Interaction) -> None:
+        channel_id = interaction.channel.id
+        if channel_id not in self.channels or self.channels[channel_id]["type"] != "create":
+            # send embed msg ("this channel cannot be deleted")
+            pass
+        else:
+            webhook = self.channels[channel_id]["webhook"]
+            await interaction.channel.delete()
+            # TODO: self embed msg ("this channel has been permanently deleted")
+            self.channels.pop(channel_id)
+
+    @app_commands.command(name="kick-Wumplus", description="Kick Wumplus from this channel")
+    async def kick_wumplus(self, interaction: Interaction) -> None:
+        channel = interaction.channel
+        if channel.id not in self.channels:
+            # send embed msg ("Wumplus is not on this channel")
+            pass
+        else:
+            self.channels.pop(channel.id)
+            # send embed msg ("Wumplus has left this channel")
 
     @app_commands.command(name="send", description="Send Message")
     @app_commands.describe(message="message")
