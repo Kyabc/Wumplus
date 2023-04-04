@@ -31,7 +31,6 @@ class Wumpus(commands.Bot):
     async def on_ready(self) -> None:
         await self.tree.sync()
         print(f"Logged in as: {self.user} (Bot Version: {self.bot_version})\n")
-        
 
     async def setup_hook(self) -> None:
         if self.session is None:
