@@ -30,7 +30,7 @@ class ChatBot(commands.Cog):
                 "role": "assistant" if message.author.id == self.bot.user.id else "user",
             }
             messages.append(content)
-        return messages
+        return reversed(messages)
 
     async def get_assistant_response(self, messages: list[dict[str, str]]) -> str:
         response = openai.ChatCompletion.create(model=settings.OPENAI_MODEL, messages=messages)
